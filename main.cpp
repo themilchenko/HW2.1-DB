@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 
-#include "Student.h"
 #include "Hybrid.h"
 #include "Individual.h"
 #include "General.h"
@@ -54,7 +53,8 @@ void help()
 		"> If you want to search people in DB press 15;\n"
 		"> If you want to finish work press '0'.\n";
 	std::cout << "===================================\n";
-	std::cout << "Also don't write the name of file with '.txt'.\n";
+	std::cout << "-- Also don't write the name of file with '.txt'.\n";
+	std::cout << "-- Don't forget to close DB after finish of working with it.\n";
 	std::cout << std::endl;
 }
 
@@ -219,11 +219,12 @@ bool sort_semestr(const Hybrid* left, const Hybrid* right)
 
 int main()
 {
-	if (!fs::exists(fs::current_path() / "DB"))
-		fs::create_directory(fs::current_path() / "BD");
+	if (!fs::exists(fs::current_path() / "DB"))             /*РµСЃР»Рё РЅРµС‚ РєС‚Р°С‚Р»РѕРіР° СЃ Р‘Р” - СЃРѕР·РґР°С‚СЊ РµРіРѕ*/
+		fs::create_directory(fs::current_path() / "DB");
 
-	std::string str_command;
-	std::string file_name;
+	std::string str_command = "";
+	std::string file_name = "";
+	std::string reserv_file_name = "";
 	std::fstream file(fs::current_path() / "DB");
 	file.close();
 
@@ -244,7 +245,7 @@ int main()
 
 			switch (std::stoi(str_command))
 			{
-			case 1: /*Создание однотипных БД и гибридных БД.*/
+			case 1: /*РЎРѕР·РґР°РЅРёРµ РѕРґРЅРѕС‚РёРїРЅС‹С… Р‘Р” Рё РіРёР±СЂРёРґРЅС‹С… Р‘Р”.*/
 			{
 				std::string DB_name;
 				std::cout << "Name your database: ";
@@ -253,7 +254,7 @@ int main()
 
 				try
 				{
-					if (fs::exists(DB_name + ".txt"))
+					if (fs::exists(fs::current_path() / "DB" / DB_name))
 						throw std::exception("The DB with the same name is already exists, try again\n");
 					std::ofstream OutputFile(fs::current_path() / "DB" / DB_name);
 					OutputFile.close();
@@ -267,7 +268,7 @@ int main()
 				break;
 			}
 
-			case 2: /*Вывод на экран списка существующих БД.*/
+			case 2: /*Р’С‹РІРѕРґ РЅР° СЌРєСЂР°РЅ СЃРїРёСЃРєР° СЃСѓС‰РµСЃС‚РІСѓСЋС‰РёС… Р‘Р”.*/
 			{
 				std::cout << std::endl;
 
@@ -282,7 +283,7 @@ int main()
 				break;
 			}
 
-			case 3: /*Удаление БД.*/
+			case 3: /*РЈРґР°Р»РµРЅРёРµ Р‘Р”.*/
 			{
 				std::string removable_file;
 				std::cout << "Type, what DB you want to delete: ";
@@ -302,7 +303,7 @@ int main()
 				break;
 			}
 
-			case 4: /*Переименовывание БД.*/
+			case 4: /*РџРµСЂРµРёРјРµРЅРѕРІС‹РІР°РЅРёРµ Р‘Р”.*/
 			{
 				std::string old_file;
 				std::string new_file;
@@ -328,7 +329,7 @@ int main()
 				break;
 			}
 
-			case 5: /*Открытие БД.*/
+			case 5: /*РћС‚РєСЂС‹С‚РёРµ Р‘Р”.*/
 			{
 				std::cout << "Type the name of file you want to open: ";
 				std::cin >> file_name;
@@ -346,29 +347,32 @@ int main()
 				break;
 			}
 
-			case 6: /*Сохранение БД.*/
+			case 6: /*РЎРѕС…СЂР°РЅРµРЅРёРµ Р‘Р”.*/
 			{
-				std::cout << "Enter the name of file you want to save: ";
-				std::cin >> file_name;
-				file_name += ".txt";
 
-				if (fs::exists(fs::current_path() / "DB" / file_name))
+				if (file_name != "")
 				{
 					file.close();
+
 					for (Hybrid* i : DB)
 						delete i;
 					DB.clear();
+
+					file_name = "";
 					std::cout << "File has saved sucsessfully.\n";
 				}
 				else
-					std::cout << "File doesen't exist.\n";
+					std::cout << "File hasn't been opened yet.\n";
 
 				system("pause");
 				break;
 			}
 
-			case 7: /*Добавление записей в БД.*/
+			case 7: /*Р”РѕР±Р°РІР»РµРЅРёРµ Р·Р°РїРёСЃРµР№ РІ Р‘Р”.*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					std::string plan;
@@ -394,24 +398,20 @@ int main()
 					{
 						std::set<std::pair<std::string, size_t>> list;
 						size_t subject_num;
-						std::cout << "Enter the size of subjects: ";
+						std::cout << "Enter the num of subjects: ";
 						std::cin >> subject_num;
 
 						for (size_t i = 0; i < subject_num; ++i)
 						{
 							std::pair<std::string, size_t> element;
 							std::cout << "Enter the name of subject: ";
-							std::cin >> element.first;
+							std::cin.ignore();
+							std::getline(std::cin, element.first);
 							std::cout << "Enter the mark for this subject: ";
 							std::cin >> element.second;
 
 							list.insert(element);
 						}
-
-						for (auto& i : DB)
-							delete i;
-
-						DB.clear();
 
 						read(file, DB);
 						DB.push_back(new Individual(name, chair, semestr, list));
@@ -439,18 +439,14 @@ int main()
 							{
 								std::pair<std::string, size_t> element;
 								std::cout << "Enter the name of subject: ";
-								std::cin >> element.first;
+								std::cin.ignore();
+								std::getline(std::cin, element.first);
 								std::cout << "Enter the mark for this subject: ";
 								std::cin >> element.second;
 								part.insert(element);
 							}
 							list.insert(part);
 						}
-
-						for (auto& i : DB)
-							delete i;
-
-						DB.clear();
 
 						read(file, DB);
 						DB.push_back(new General(name, chair, semestr, list));
@@ -473,8 +469,11 @@ int main()
 				break;
 			}
 
-			case 8: /*Удаление записей в БД.*/
+			case 8: /*РЈРґР°Р»РµРЅРёРµ Р·Р°РїРёСЃРµР№ РІ Р‘Р”.*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					std::string people;
@@ -518,8 +517,11 @@ int main()
 				break;
 			}
 
-			case 9: /*Вывод на экран записей БД.*/
+			case 9: /*Р’С‹РІРѕРґ РЅР° СЌРєСЂР°РЅ Р·Р°РїРёСЃРµР№ Р‘Р”.*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					if (fs::file_size(fs::current_path() / "DB" / file_name) == 0)
@@ -532,54 +534,44 @@ int main()
 							std::getline(file, current);
 							std::cout << current << std::endl;
 						}
-						file.close();
 					}
 				}
 				else
 					std::cout << "File not open\n";
 
+				system("pause");
 				break;
 			}
 
-			case 10: /*Сортировка записей БД.*/
+			case 10: /*РЎРѕСЂС‚РёСЂРѕРІРєР° Р·Р°РїРёСЃРµР№ Р‘Р”.*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					std::string sort_cmnd;
 					std::cout << "Press 'name' to sort students by SNP and press 'semestr' to sort by semestr: ";
 					std::cin >> sort_cmnd;
+
+					for (auto& i : DB)
+						delete i;
+					DB.clear();
+
+					read(file, DB);
+
 					if (sort_cmnd == "name")
-					{
-						for (auto& i : DB)
-							delete i;
-
-						read(file, DB);
 						std::sort(DB.begin(), DB.end(), sort_name);
-
-						file.close();
-						file.open(fs::current_path() / "DB" / file_name, std::ofstream::out | std::ofstream::trunc);
-
-						for (const auto& i : DB)
-							i->write(file);
-
-						std::cout << "Sorting finished sucsessfully.\n";
-					}
 					else if (sort_cmnd == "semestr")
-					{
-						for (auto& i : DB)
-							delete i;
-
-						read(file, DB);
 						std::sort(DB.begin(), DB.end(), sort_semestr);
 
-						file.close();
-						file.open(fs::current_path() / "DB" / file_name, std::ofstream::out | std::ofstream::trunc);
+					file.close();
+					file.open(fs::current_path() / "DB" / file_name, std::ofstream::out | std::ofstream::trunc);
 
-						for (const auto& i : DB)
-							i->write(file);
+					for (const auto& i : DB)
+						i->write(file);
 
-						std::cout << "Sorting finished sucsessfully.\n";
-					}
+					std::cout << "Sorting finished sucsessfully.\n";
 				}
 				else
 					std::cout << "File not open.\n";
@@ -588,8 +580,11 @@ int main()
 				break;
 			}
 
-			case 11: /*Выборка записей БД по правилу (подмножество записей).*/
+			case 11: /*Р’С‹Р±РѕСЂРєР° Р·Р°РїРёСЃРµР№ Р‘Р” РїРѕ РїСЂР°РІРёР»Сѓ (РїРѕРґРјРЅРѕР¶РµСЃС‚РІРѕ Р·Р°РїРёСЃРµР№).*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					std::string cmnd;
@@ -600,7 +595,6 @@ int main()
 
 					for (auto& i : DB)
 						delete i;
-
 					DB.clear();
 
 					read(file, DB);
@@ -622,7 +616,13 @@ int main()
 						if (DB_subset.size() == 0)
 							std::cout << "There are no one student you search.\n";
 						else
-							std::cout << "The set of students has created.\n";
+						{
+							std::cout << "The set of students has createdif you want to save this press 13 in menu.\n";
+							std::cout << "There are students you have choosen:\n";
+
+							for (const auto& i : DB_subset)
+								i->print();
+						}
 					}
 					else if (cmnd == "subject")
 					{
@@ -641,7 +641,13 @@ int main()
 						if (DB_subset.size() == 0)
 							std::cout << "There are no one student you search.\n";
 						else
-							std::cout << "The set of students has created.\n";
+						{
+							std::cout << "The set of students has created, if you want to save this press 13 in menu.\n";
+							std::cout << "There are students you have choosen:\n";
+
+							for (const auto& i : DB_subset)
+								i->print();
+						}
 					}
 					else
 						std::cout << "Incorrect input.\n";
@@ -653,21 +659,22 @@ int main()
 				break;
 			}
 
-			case 12: /*Сохранение выборки как новой БД (по желанию пользователя).*/
+			case 12: /*РЎРѕС…СЂР°РЅРµРЅРёРµ РІС‹Р±РѕСЂРєРё РєР°Рє РЅРѕРІРѕР№ Р‘Р” (РїРѕ Р¶РµР»Р°РЅРёСЋ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ).*/
 			{
 				if (DB_subset.size() > 0)
 				{
 					std::cout << "Enter the name of new DB: ";
-					std::cin >> file_name;
-					file_name += ".txt";
+					std::cin >> reserv_file_name;
+					reserv_file_name += ".txt";
 
-					std::fstream File(fs::current_path() / "DB" / file_name, std::ios::out);
+					std::fstream File(fs::current_path() / "DB" / reserv_file_name, std::ios::out);
 
 					if (File.is_open())
 						for (const auto& i : DB_subset)
 							i->write(File);
 
-					file.close();
+					File.close();
+					reserv_file_name = "";
 
 					std::cout << "The set has successfully writen in file.\n";
 				}
@@ -677,8 +684,11 @@ int main()
 				break;
 			}
 
-			case 13: /*Редактирование записей в БД.*/
+			case 13: /*Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ Р·Р°РїРёСЃРµР№ РІ Р‘Р”.*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					for (auto& i : DB)
@@ -702,7 +712,7 @@ int main()
 						"Enter the number: ";
 					std::cin >> num;
 
-					for (const auto& i : DB)
+					for (auto& i : DB)
 					{
 						if (i->get_name() == name)
 						{
@@ -712,6 +722,7 @@ int main()
 								{
 									std::string new_str;
 									std::cout << "Enter the new SNP: ";
+									std::cin.ignore();
 									std::getline(std::cin, new_str);
 
 									i->set_name(new_str);
@@ -744,14 +755,14 @@ int main()
 									break;
 								}
 
-								file.close();
-								file.open(fs::current_path() / "DB" / file_name, std::ofstream::out | std::ofstream::trunc);
-
-								for (const auto& i : DB)
-									i->write(file);
 							}
 						}
 					}
+					file.close();
+					file.open(fs::current_path() / "DB" / file_name, std::ofstream::out | std::ofstream::trunc);
+
+					for (auto& i : DB)
+						i->write(file);
 				}
 				else
 					std::cout << "File not open.\n";
@@ -760,8 +771,11 @@ int main()
 				break;
 			}
 
-			case 14: /*Подсчет количества отличников*/
+			case 14: /*РџРѕРґСЃС‡РµС‚ РєРѕР»РёС‡РµСЃС‚РІР° РѕС‚Р»РёС‡РЅРёРєРѕРІ*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					read(file, DB);
@@ -770,6 +784,10 @@ int main()
 						std::cout << "There are " << num << " students who've got only excellent marks";
 					else
 						std::cout << "There aren't excellent students.\n";
+
+					for (auto& i : DB)
+						delete i;
+					DB.clear();
 				}
 				else
 					std::cout << "File not open.\n";
@@ -778,8 +796,11 @@ int main()
 				break;
 			}
 
-			case 15: /*Поиск студента*/
+			case 15: /*РџРѕРёСЃРє СЃС‚СѓРґРµРЅС‚Р°*/
 			{
+				file.close();
+				file.open(fs::current_path() / "DB" / file_name);
+
 				if (file.is_open())
 				{
 					read(file, DB);
@@ -792,6 +813,10 @@ int main()
 						continue;
 					else
 						std::cout << "There aren't students with this name.\n";
+
+					for (auto& i : DB)
+						delete i;
+					DB.clear();
 				}
 				else
 					std::cout << "File not open.\n";
