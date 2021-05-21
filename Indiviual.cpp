@@ -18,14 +18,6 @@ void Individual::write(std::fstream& file_name) const
 	file_name << std::endl;
 }
 
-bool Individual::is_name(const std::string& name)
-{
-	if (SNP == name)
-	{
-		return 1;
-	}
-}
-
 bool Individual::is_same_subjects(const std::string& key, std::vector<Hybrid*>& vec) const
 {
 	for (const auto& i : semestrs)
