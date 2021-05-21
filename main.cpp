@@ -432,7 +432,7 @@ int main()
 						for (int i = 0; i < semestr; ++i)
 						{
 							size_t num;
-							std::cout << "Enter the size of subjects in " << i + 1 << " semest: ";
+							std::cout << "Enter the num of subjects in " << i + 1 << " semest: ";
 							std::cin >> num;
 							std::set<std::pair<std::string, size_t>> part;
 							for (int j = 0; j < num; ++j)
