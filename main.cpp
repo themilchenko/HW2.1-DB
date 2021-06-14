@@ -630,8 +630,7 @@ int main()
 						std::cin >> cmnd;
 
 						for (const auto& i : DB)
-							if (i->is_same_subjects(cmnd, DB_subset))
-								true;
+							i->is_same_subjects(cmnd, DB_subset);
 
 						for (auto& i : DB)
 							delete i;
